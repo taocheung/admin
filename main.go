@@ -17,5 +17,5 @@ func main()  {
 	router.Init(engine)
 	model.Init()
 
-	engine.Run(":8080")
+	engine.Run(":31000")
 }
