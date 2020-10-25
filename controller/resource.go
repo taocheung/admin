@@ -109,6 +109,7 @@ func ResourceImport(c *gin.Context) {
 		return
 	}
 	Response(c, map[string]int64{"num": num})
+	return
 }
 
 func ResourceExport(c *gin.Context) {

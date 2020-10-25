@@ -7,6 +7,7 @@ import (
 )
 
 func Init(router *gin.Engine) {
+	router.Use(middleware.Cors())
 	user := router.Group("/user")
 	user.POST("login", controller.Login)
 	user.Use(middleware.JWTUserAuth())
