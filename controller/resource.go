@@ -149,7 +149,6 @@ func ResourceExport(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Header("Content-Disposition", "attachment; filename="+"资源列表.xlsx")
 	c.Header("Content-Transfer-Encoding", "binary")
 
 	//回写到web 流媒体 形成下载
