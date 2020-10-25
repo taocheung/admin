@@ -7,14 +7,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/tealeg/xlsx"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 )
 
-func ResourceImport(c *gin.Context)  {
+func ResourceImport(c *gin.Context) {
 	var data []model.Resource
 
 	file, err := c.FormFile("file")
@@ -64,7 +66,12 @@ func ResourceImport(c *gin.Context)  {
 				Account: v.Cells[0].Value,
 			})
 		}
-		os.Remove(fileName)
+		defer func() {
+			err = os.Remove(fileName)
+			if err != nil {
+				logrus.Error(err)
+			}
+		}()
 	} else {
 		f, err := file.Open()
 		defer f.Close()
@@ -80,10 +87,11 @@ func ResourceImport(c *gin.Context)  {
 			line := strings.Split(row, "----")
 			if len(line) < 2 {
 				Error(c, errors.New("数据错误"))
+				return
 			}
 			data = append(data, model.Resource{
-				Phone:     line[1],
-				Account:   line[0],
+				Phone:   line[1],
+				Account: line[0],
 			})
 			if err != nil {
 				if errors.Is(err, io.EOF) {
@@ -150,9 +158,19 @@ func ResourceList(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) {
+			list, err := model.ResourceList(account)
+			if err != nil {
+				Error(c, err)
+				return
+			}
+			Response(c, list)
+			return
+		}
 		Error(c, err)
 		return
 	}
+
 	fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
 	if err := c.SaveUploadedFile(file, fileName); err != nil {
 		Error(c, err)

@@ -33,9 +33,16 @@ func ResourceExport(ids []int) ([]Resource, error) {
 func ResourceList(account []string) ([]Resource, error) {
 	var list []Resource
 
-	err := db.Model(&Resource{}).Where("account in ?", account).Find(&list).Error
-	if err != nil {
-		return nil, err
+	if len(account) == 0 {
+		err := db.Model(&Resource{}).Order("created_at desc").Find(&list).Error
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := db.Model(&Resource{}).Where("account in ?", account).Find(&list).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 	return list, nil
 }
