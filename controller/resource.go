@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tealeg/xlsx"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -128,8 +129,8 @@ func ResourceExport(c *gin.Context) {
 		ids = append(ids, v)
 	}
 
-	file := xlsx.NewFile()
-	sheet, err := file.AddSheet("资源列表")
+	xlsxFile := xlsx.NewFile()
+	sheet, err := xlsxFile.AddSheet("资源列表")
 	if err != nil {
 		Error(c, err)
 		return
@@ -148,11 +149,19 @@ func ResourceExport(c *gin.Context) {
 		row.AddCell().Value = v.Phone
 	}
 
+	fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
+	xlsxFile.Save(fileName)
+
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		Error(c, err)
+	}
+	defer os.Remove(fileName)
+
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Header("Content-Disposition", "attachment")
 
-	//回写到web 流媒体 形成下载
-	file.Write(c.Writer)
+	c.Writer.Write(b)
 }
 
 func ResourceList(c *gin.Context) {
