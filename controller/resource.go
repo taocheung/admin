@@ -6,15 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/axgle/mahonia"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/tealeg/xlsx"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 	"time"
-	"github.com/axgle/mahonia"
 )
 
 func ResourceImport(c *gin.Context) {
@@ -166,24 +165,6 @@ func ResourceList(c *gin.Context) {
 	accountMap := make(map[string]struct{})
 	file, err := c.FormFile("file")
 	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
-			list, err := model.ResourceList(account)
-			if err != nil {
-				Error(c, err)
-				return
-			}
-			for _, v := range list {
-				rsp = append(rsp, model.ResourceListRsp{
-					Id:        v.Id,
-					Phone:     v.Phone,
-					Account:   v.Account,
-					Status:    "成功",
-					CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
-				})
-			}
-			Response(c, rsp)
-			return
-		}
 		Error(c, err)
 		return
 	}
