@@ -207,7 +207,7 @@ func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 	err := tx.Offset((req.PageId - 1) * req.PageSize).
 		Count(&count).
 		Limit(req.PageSize).
-		Order("created_at desc").
+		Order("id asc").
 		Find(&users).Error
 	if err != nil {
 		return nil, err
