@@ -3,6 +3,7 @@ package controller
 import (
 	"admin/middleware"
 	"admin/model"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +32,7 @@ func Login(c *gin.Context) {
 		Error(c, err)
 		return
 	}
-	Response(c, map[string]string{"token": token})
+	Response(c, map[string]string{"token": token, "role": fmt.Sprintf("%d", user.Role)})
 }
 
 func AddUser(c *gin.Context)  {
