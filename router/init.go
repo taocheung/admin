@@ -19,10 +19,10 @@ func Init(router *gin.Engine) {
 	}
 
 	resource := router.Group("/resource")
+	resource.GET("export", controller.ResourceExport)
 	resource.Use(middleware.JWTAuth())
 	{
 		resource.POST("import", controller.ResourceImport)
-		resource.GET("export", controller.ResourceExport)
 		resource.POST("list", controller.ResourceList)
 	}
 	router.GET("download", controller.Template)
