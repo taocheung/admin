@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"github.com/axgle/mahonia"
 )
 
 func ResourceImport(c *gin.Context) {
@@ -76,11 +77,13 @@ func ResourceImport(c *gin.Context) {
 		f, err := file.Open()
 		defer f.Close()
 
+		decoder := mahonia.NewDecoder("gbk")
+
 		if err != nil {
 			Error(c, err)
 			return
 		}
-		buf := bufio.NewReader(f)
+		buf := bufio.NewReader(decoder.NewReader(f))
 		for {
 			row, err := buf.ReadString('\n')
 			row = strings.TrimSpace(row)
