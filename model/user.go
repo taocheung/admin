@@ -24,7 +24,7 @@ func (u *User) TableName() string {
 	return "user"
 }
 
-var layout = "2006-01-02 15:04:05"
+var layout = "2006-01-02"
 
 type LoginReq struct {
 	Username string `json:"username" binding:"required"`
