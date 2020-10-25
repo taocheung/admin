@@ -148,7 +148,7 @@ func ResourceExport(c *gin.Context) {
 		row.AddCell().Value = v.Phone
 	}
 
-	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Header("Content-Disposition", "attachment; filename="+"资源列表.xlsx")
 	c.Header("Content-Transfer-Encoding", "binary")
 
