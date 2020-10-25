@@ -226,7 +226,7 @@ func ResourceList(c *gin.Context) {
 			})
 		}
 	}
-	Response(c, list)
+	Response(c, rsp)
 }
 
 func Template(c *gin.Context) {

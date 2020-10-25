@@ -64,7 +64,6 @@ func UpdateUser(c *gin.Context)  {
 	Response(c, nil)
 }
 
-
 func DeleteUser(c *gin.Context)  {
 	var req model.DeleteUserReq
 	if err := c.Bind(&req); err != nil {
