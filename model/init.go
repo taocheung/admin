@@ -21,7 +21,7 @@ func Init() {
 		config.Database,
 	)
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
 		logrus.Fatalf("连接数据库失败: %v", err)

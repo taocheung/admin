@@ -35,6 +35,10 @@ func ResourceImport(data []Resource) (int64, error) {
 	return i, nil
 }
 
+type ResourceExportReq struct {
+	ID []int `json:"id"`
+}
+
 func ResourceExport(ids []int) ([]Resource, error) {
 	var list []Resource
 	err := db.Model(&Resource{}).Where("id in ?", ids).Find(&list).Error

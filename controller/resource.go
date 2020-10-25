@@ -3,7 +3,6 @@ package controller
 import (
 	"admin/model"
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/axgle/mahonia"
@@ -115,17 +114,18 @@ func ResourceImport(c *gin.Context) {
 }
 
 func ResourceExport(c *gin.Context) {
-	var ids []int
-	idStr := c.Query("id")
-	err := json.Unmarshal([]byte(idStr), &ids)
-	if err != nil {
+	var (
+		req model.ResourceExportReq
+		ids []int
+	)
+
+	if err := c.Bind(&req); err != nil {
 		Error(c, err)
 		return
 	}
 
-	if len(ids) == 0 {
-		Error(c, errors.New("请选择导出数据"))
-		return
+	for _, v := range req.ID {
+		ids = append(ids, v)
 	}
 
 	file := xlsx.NewFile()
