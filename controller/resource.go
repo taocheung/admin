@@ -207,10 +207,10 @@ func ResourceList(c *gin.Context) {
 		dataMap[v.Account] = v
 	}
 
-	for i, v := range account {
+	for _, v := range account {
 		if r, ok := dataMap[v]; ok {
 			rsp = append(rsp, model.ResourceListRsp{
-				Id:        i + 1,
+				Id:        r.Id,
 				Phone:     r.Phone,
 				Account:   r.Account,
 				Status:    "成功",
@@ -218,7 +218,7 @@ func ResourceList(c *gin.Context) {
 			})
 		} else {
 			rsp = append(rsp, model.ResourceListRsp{
-				Id:        i + 1,
+				Id:        0,
 				Phone:     "",
 				Account:   r.Account,
 				Status:    "无此数据",
