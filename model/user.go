@@ -35,7 +35,8 @@ type LoginReq struct {
 func Login(req *LoginReq) (*User, error) {
 	var user User
 
-	err := db.Model(&User{}).Where("username = ?", req.Username).First(&user).Error
+	tx := db.WithContext(context.Background())
+	err := tx.Model(&User{}).Where("username = ?", req.Username).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -96,30 +97,40 @@ type UpdateUserReq struct {
 
 func UpdateUser(req *UpdateUserReq) error {
 	var (
+		password []byte
 		applyTime time.Time
 		err       error
 	)
 
+	data := make(map[string]interface{})
 	if req.ApplyTime != "" {
 		applyTime, err = time.ParseInLocation(layout, req.ApplyTime, time.Local)
 		if err != nil {
 			return err
 		}
+		data["apply_time"] = applyTime
 	} else {
 		applyTime = time.Now()
 	}
 
-	err = db.Model(&User{}).Where("id = ?", req.Id).Updates(User{
-		Id:        req.Id,
-		Username:  req.Username,
-		RealName:  req.RealName,
-		Phone:     req.Phone,
-		Password:  req.Password,
-		ApplyTime: applyTime,
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-		DeletedAt: nil,
-	}).Error
+	if req.Password != "" {
+		password, err = bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		data["password"] = password
+	}
+	if req.Username != "" {
+		data["username"] = req.Username
+	}
+	if req.RealName != "" {
+		data["real_name"] = req.RealName
+	}
+	if req.Phone != "" {
+		data["phone"] = req.Phone
+	}
+
+	err = db.Model(&User{}).Where("id = ?", req.Id).Updates(data).Error
 	if err != nil {
 		return err
 	}
@@ -139,44 +150,44 @@ func DeleteUser(req *DeleteUserReq) error {
 }
 
 type ListUserReq struct {
-	PageId int `json:"page_id"`
-	PageSize int `json:"page_size"`
+	PageId   int    `json:"page_id"`
+	PageSize int    `json:"page_size"`
 	Username string `json:"username"`
 	RealName string `json:"real_name"`
-	Phone string `json:"phone"`
+	Phone    string `json:"phone"`
 	StarTime string `json:"star_time"`
-	EndTime string `json:"end_time"`
+	EndTime  string `json:"end_time"`
 }
 
 type ListUserRsp struct {
-	Count int64 `json:"count"`
-	List []UserItem `json:"list"`
+	Count int64      `json:"count"`
+	List  []UserItem `json:"list"`
 }
 
 type UserItem struct {
-	Id        int        `json:"id"`
-	Username  string     `json:"username"`
-	RealName  string     `json:"real_name"`
-	Phone     string     `json:"phone"`
-	Role      int        `json:"role"`
+	Id        int    `json:"id"`
+	Username  string `json:"username"`
+	RealName  string `json:"real_name"`
+	Phone     string `json:"phone"`
+	Role      int    `json:"role"`
 	ApplyTime string `json:"apply_time"`
-	CreatedAt string  `json:"created_at"`
+	CreatedAt string `json:"created_at"`
 }
 
 func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 	var (
 		users []User
 		count int64
-		list []UserItem
+		list  []UserItem
 	)
 
 	tx := db.WithContext(context.Background())
 	tx = tx.Model(&User{})
 	if req.Username != "" {
-		tx = tx.Where("username like ?", "%" +req.Username + "%")
+		tx = tx.Where("username like ?", "%"+req.Username+"%")
 	}
 	if req.RealName != "" {
-		tx = tx.Where("real_name like ?", "%" + req.RealName + "%")
+		tx = tx.Where("real_name like ?", "%"+req.RealName+"%")
 	}
 	if req.Phone != "" {
 		tx = tx.Where("phone = ?", req.Phone)
@@ -193,7 +204,7 @@ func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 	if req.PageSize <= 0 {
 		req.PageSize = 10
 	}
-	err := tx.Offset((req.PageId-1)*req.PageSize).
+	err := tx.Offset((req.PageId - 1) * req.PageSize).
 		Count(&count).
 		Limit(req.PageSize).
 		Order("created_at desc").
