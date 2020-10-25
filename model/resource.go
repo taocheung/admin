@@ -13,12 +13,13 @@ func (r *Resource) TableName() string {
 	return "resource"
 }
 
-func ResourceImport(data []Resource) error {
-	err := db.Model(&Resource{}).Create(data).Error
-	if err != nil {
-		return err
+func ResourceImport(data []Resource) (int64, error) {
+	result := db.Model(&Resource{}).Create(data)
+
+	if result.Error != nil {
+		return 0, result.Error
 	}
-	return nil
+	return result.RowsAffected, nil
 }
 
 func ResourceExport(ids []int) ([]Resource, error) {
@@ -30,11 +31,19 @@ func ResourceExport(ids []int) ([]Resource, error) {
 	return list, nil
 }
 
+type ResourceListRsp struct {
+	Id int `json:"id"`
+	Phone string `json:"phone"`
+	Account string `json:"account"`
+	Status string `json:"status"`
+	CreatedAt string `json:"created_at"`
+}
+
 func ResourceList(account []string) ([]Resource, error) {
 	var list []Resource
 
 	if len(account) == 0 {
-		err := db.Model(&Resource{}).Order("created_at desc").Find(&list).Error
+		err := db.Model(&Resource{}).Order("id asc").Limit(10).Find(&list).Error
 		if err != nil {
 			return nil, err
 		}

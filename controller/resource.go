@@ -103,12 +103,12 @@ func ResourceImport(c *gin.Context) {
 		}
 	}
 
-	err = model.ResourceImport(data)
+	num, err := model.ResourceImport(data)
 	if err != nil {
 		Error(c, err)
 		return
 	}
-	Response(c, nil)
+	Response(c, map[string]int64{"num": num})
 }
 
 func ResourceExport(c *gin.Context) {
@@ -154,8 +154,12 @@ func ResourceExport(c *gin.Context) {
 }
 
 func ResourceList(c *gin.Context) {
-	var account []string
+	var (
+		account []string
+		rsp     []model.ResourceListRsp
+	)
 
+	accountMap := make(map[string]struct{})
 	file, err := c.FormFile("file")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
@@ -164,7 +168,16 @@ func ResourceList(c *gin.Context) {
 				Error(c, err)
 				return
 			}
-			Response(c, list)
+			for _, v := range list {
+				rsp = append(rsp, model.ResourceListRsp{
+					Id:        v.Id,
+					Phone:     v.Phone,
+					Account:   v.Account,
+					Status:    "成功",
+					CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+				})
+			}
+			Response(c, rsp)
 			return
 		}
 		Error(c, err)
@@ -198,11 +211,28 @@ func ResourceList(c *gin.Context) {
 			return
 		}
 		account = append(account, v.Cells[0].Value)
+		accountMap[v.Cells[0].Value] = struct{}{}
 	}
 	list, err := model.ResourceList(account)
 	if err != nil {
 		Error(c, err)
 		return
+	}
+
+	for _, v := range list {
+		var status string
+		if _, ok := accountMap[v.Account]; ok {
+			status = "成功"
+		} else {
+			status = "无此数据"
+		}
+		rsp = append(rsp, model.ResourceListRsp{
+			Id:        v.Id,
+			Phone:     v.Phone,
+			Account:   v.Account,
+			Status:    status,
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
 	}
 	Response(c, list)
 }
