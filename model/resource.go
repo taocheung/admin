@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Resource struct {
 	Id int `json:"id"`
@@ -14,12 +17,22 @@ func (r *Resource) TableName() string {
 }
 
 func ResourceImport(data []Resource) (int64, error) {
-	result := db.Model(&Resource{}).Create(data)
+	var (
+		i int64
+	)
 
-	if result.Error != nil {
-		return 0, result.Error
+	tx := db.Session(&gorm.Session{PrepareStmt: true}).Begin()
+
+	for _, v := range data {
+		result := tx.Model(&Resource{}).Where("account = ?", v.Account).FirstOrCreate(&v)
+		if result.Error != nil {
+			tx.Rollback()
+			return 0, result.Error
+		}
+		i++
 	}
-	return result.RowsAffected, nil
+	tx.Commit()
+	return i, nil
 }
 
 func ResourceExport(ids []int) ([]Resource, error) {
