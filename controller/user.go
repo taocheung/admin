@@ -10,12 +10,6 @@ import (
 func Login(c *gin.Context) {
 	var err error
 
-	defer func() {
-		if err != nil {
-			Error(c, err)
-		}
-	}()
-
 	var req model.LoginReq
 	if err = c.Bind(&req); err != nil {
 		Error(c, err)

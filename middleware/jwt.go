@@ -15,8 +15,10 @@ func JWTAuth() gin.HandlerFunc {
 		token := c.Request.Header.Get("token")
 		if token == "" {
 			c.JSON(http.StatusOK, gin.H{
-				"status": -1,
-				"msg":    "请求未携带token，无权限访问",
+				"data": "",
+				"description": "请求未携带token，无权限访问",
+				"error": "请求未携带token，无权限访问",
+				"code": 1,
 			})
 			c.Abort()
 			return
@@ -30,15 +32,19 @@ func JWTAuth() gin.HandlerFunc {
 		if err != nil {
 			if err == TokenExpired {
 				c.JSON(http.StatusOK, gin.H{
-					"status": -1,
-					"msg":    "授权已过期",
+					"data": "",
+					"description": "授权已过期",
+					"error": "授权已过期",
+					"code": 1,
 				})
 				c.Abort()
 				return
 			}
 			c.JSON(http.StatusOK, gin.H{
-				"status": -1,
-				"msg":    err.Error(),
+				"data": "",
+				"description": err.Error(),
+				"error": err.Error(),
+				"code": 1,
 			})
 			c.Abort()
 			return
@@ -81,8 +87,10 @@ func JWTUserAuth() gin.HandlerFunc {
 				return
 			}
 			c.JSON(http.StatusOK, gin.H{
-				"status": -1,
-				"msg":    err.Error(),
+				"data": "",
+				"description": err.Error(),
+				"error": err.Error(),
+				"code": 1,
 			})
 			c.Abort()
 			return
