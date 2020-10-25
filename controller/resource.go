@@ -162,7 +162,6 @@ func ResourceList(c *gin.Context) {
 		rsp     []model.ResourceListRsp
 	)
 
-	accountMap := make(map[string]struct{})
 	file, err := c.FormFile("file")
 	if err != nil {
 		Error(c, err)
@@ -196,7 +195,6 @@ func ResourceList(c *gin.Context) {
 			return
 		}
 		account = append(account, v.Cells[0].Value)
-		accountMap[v.Cells[0].Value] = struct{}{}
 	}
 	list, err := model.ResourceList(account)
 	if err != nil {
@@ -204,20 +202,29 @@ func ResourceList(c *gin.Context) {
 		return
 	}
 
+	dataMap := make(map[string]model.Resource)
 	for _, v := range list {
-		var status string
-		if _, ok := accountMap[v.Account]; ok {
-			status = "成功"
+		dataMap[v.Account] = v
+	}
+
+	for i, v := range account {
+		if r, ok := dataMap[v]; ok {
+			rsp = append(rsp, model.ResourceListRsp{
+				Id:        i,
+				Phone:     r.Phone,
+				Account:   r.Account,
+				Status:    "成功",
+				CreatedAt: r.CreatedAt.Format("2006-01-02 15:04:05"),
+			})
 		} else {
-			status = "无此数据"
+			rsp = append(rsp, model.ResourceListRsp{
+				Id:        i,
+				Phone:     "",
+				Account:   r.Account,
+				Status:    "无此数据",
+				CreatedAt: "",
+			})
 		}
-		rsp = append(rsp, model.ResourceListRsp{
-			Id:        v.Id,
-			Phone:     v.Phone,
-			Account:   v.Account,
-			Status:    status,
-			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
-		})
 	}
 	Response(c, list)
 }
