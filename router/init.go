@@ -26,5 +26,4 @@ func Init(router *gin.Engine) {
 		resource.POST("list", controller.ResourceList)
 	}
 	router.GET("download", controller.Template)
-
 }
