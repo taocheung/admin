@@ -97,7 +97,7 @@ type UpdateUserReq struct {
 
 func UpdateUser(req *UpdateUserReq) error {
 	var (
-		password []byte
+		password  []byte
 		applyTime time.Time
 		err       error
 	)
@@ -204,8 +204,8 @@ func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 	if req.PageSize <= 0 {
 		req.PageSize = 10
 	}
-	err := tx.Offset((req.PageId - 1) * req.PageSize).
-		Count(&count).
+	err := tx.Count(&count).
+		Offset((req.PageId - 1) * req.PageSize).
 		Limit(req.PageSize).
 		Order("id asc").
 		Find(&users).Error
