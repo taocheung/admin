@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -169,21 +170,22 @@ func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 		list []UserItem
 	)
 
-	db = db.Model(&User{})
+	tx := db.WithContext(context.Background())
+	tx = tx.Model(&User{})
 	if req.Username != "" {
-		db = db.Where("username like ?", "%" +req.Username + "%")
+		tx = tx.Where("username like ?", "%" +req.Username + "%")
 	}
 	if req.RealName != "" {
-		db = db.Where("real_name like ?", "%" + req.RealName + "%")
+		tx = tx.Where("real_name like ?", "%" + req.RealName + "%")
 	}
 	if req.Phone != "" {
-		db = db.Where("phone = ?", req.Phone)
+		tx = tx.Where("phone = ?", req.Phone)
 	}
 	if req.StarTime != "" {
-		db = db.Where("apply_time > ?", req.StarTime)
+		tx = tx.Where("apply_time > ?", req.StarTime)
 	}
 	if req.EndTime != "" {
-		db = db.Where("apply_time < ?", req.EndTime)
+		tx = tx.Where("apply_time < ?", req.EndTime)
 	}
 	if req.PageId <= 0 {
 		req.PageId = 1
@@ -191,7 +193,7 @@ func ListUser(req *ListUserReq) (*ListUserRsp, error) {
 	if req.PageSize <= 0 {
 		req.PageSize = 10
 	}
-	err := db.Offset((req.PageId-1)*req.PageSize).
+	err := tx.Offset((req.PageId-1)*req.PageSize).
 		Count(&count).
 		Limit(req.PageSize).
 		Order("created_at desc").
