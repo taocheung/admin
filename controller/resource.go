@@ -156,7 +156,7 @@ func ResourceExport(c *gin.Context) {
 		return
 	}
 	Response(c, map[string]interface{}{
-		"download_url": fmt.Sprintf("%s/%s", config.Host, fileName),
+		"download_url": fmt.Sprintf("%s/%s", config.Domain, fileName),
 	})
 }
 

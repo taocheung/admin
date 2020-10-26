@@ -11,6 +11,7 @@ var (
 	User string
 	Password string
 	Database string
+	Domain string
 )
 
 
@@ -41,5 +42,9 @@ func Init() {
 	Database = viper.GetString("database")
 	if Database == "" {
 		logrus.Fatal("database empty")
+	}
+	Domain = viper.GetString("domain")
+	if Domain == "" {
+		logrus.Fatal("domain empty")
 	}
 }

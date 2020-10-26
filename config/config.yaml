@@ -1,5 +1,6 @@
-host: 47.99.45.30
+host: rm-bp1tbiupwv426217j7o.mysql.rds.aliyuncs.com
 port: 3306
-user: root
-password: 123456
-database: test
+user: wuwei0907
+password: wuwei0907
+database: admin
+domain: 47.111.25.90
