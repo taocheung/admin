@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tealeg/xlsx"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -152,16 +151,9 @@ func ResourceExport(c *gin.Context) {
 	fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
 	xlsxFile.Save(fileName)
 
-	b, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		Error(c, err)
-	}
-	defer os.Remove(fileName)
-
-	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Header("Content-Disposition", "attachment")
-
-	c.Writer.Write(b)
+	Response(c, map[string]interface{}{
+		"download_url": fileName,
+	})
 }
 
 func ResourceList(c *gin.Context) {
