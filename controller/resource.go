@@ -149,11 +149,14 @@ func ResourceExport(c *gin.Context) {
 		row.AddCell().Value = v.Phone
 	}
 
-	fileName := fmt.Sprintf("%s/static/%d.xlsx", config.Host, time.Now().UnixNano())
-	xlsxFile.Save(fileName)
-
+	fileName := fmt.Sprintf("static/%d.xlsx", time.Now().UnixNano())
+	err = xlsxFile.Save(fmt.Sprintf("/opt/%s", fileName))
+	if err != nil {
+		Error(c, err)
+		return
+	}
 	Response(c, map[string]interface{}{
-		"download_url": fileName,
+		"download_url": fmt.Sprintf("%s/%s", config.Host, fileName),
 	})
 }
 
