@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="97e0acb4-4b06-4dd7-b56b-022a8addc667" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/resource.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/resource.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

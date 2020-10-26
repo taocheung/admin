@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"admin/config"
 	"admin/model"
 	"bufio"
 	"errors"
@@ -148,7 +149,7 @@ func ResourceExport(c *gin.Context) {
 		row.AddCell().Value = v.Phone
 	}
 
-	fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
+	fileName := fmt.Sprintf("%s/static/%d.xlsx", config.Host, time.Now().UnixNano())
 	xlsxFile.Save(fileName)
 
 	Response(c, map[string]interface{}{
