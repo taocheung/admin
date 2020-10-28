@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/axgle/mahonia"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/tealeg/xlsx"
 	"io"
 	"os"
@@ -25,21 +24,27 @@ func ResourceImport(c *gin.Context) {
 		return
 	}
 	name := strings.Split(file.Filename, ".")
-	if len(name) != 2 {
+	if len(name) < 2 {
 		Error(c, errors.New("上传文件类型错误"))
 		return
 	}
-	if name[1] != "xlsx" && name[1] != "txt" {
+	fileType := name[len(name)-1]
+	if fileType != "xlsx" && fileType != "txt" {
+		if fileType == "xls" {
+			Error(c, errors.New("请将使用Office或WPS将xls格式转为xlsx格式再次上传"))
+			return
+		}
 		Error(c, errors.New("上传文件类型错误"))
 		return
 	}
 
-	if name[1] == "xlsx" {
-		fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
+	if fileType == "xlsx" {
+		fileName := fmt.Sprintf("%d.%s", time.Now().UnixNano(), fileType)
 		if err := c.SaveUploadedFile(file, fileName); err != nil {
 			Error(c, err)
 			return
 		}
+		defer os.Remove(fileName)
 
 		xlsxFile, err := xlsx.OpenFile(fileName)
 		if err != nil {
@@ -58,6 +63,7 @@ func ResourceImport(c *gin.Context) {
 				continue
 			}
 			if len(v.Cells) < 2 {
+				fmt.Println(v.Cells)
 				Error(c, errors.New("上传数据错误"))
 				return
 			}
@@ -66,12 +72,6 @@ func ResourceImport(c *gin.Context) {
 				Account: v.Cells[0].Value,
 			})
 		}
-		defer func() {
-			err = os.Remove(fileName)
-			if err != nil {
-				logrus.Error(err)
-			}
-		}()
 	} else {
 		f, err := file.Open()
 		defer f.Close()
@@ -88,8 +88,7 @@ func ResourceImport(c *gin.Context) {
 			row = strings.TrimSpace(row)
 			line := strings.Split(row, "----")
 			if len(line) < 2 {
-				Error(c, errors.New("数据错误"))
-				return
+				continue
 			}
 			data = append(data, model.Resource{
 				Phone:   line[1],
@@ -172,34 +171,78 @@ func ResourceList(c *gin.Context) {
 		return
 	}
 
-	fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
-	if err := c.SaveUploadedFile(file, fileName); err != nil {
-		Error(c, err)
+	name := strings.Split(file.Filename, ".")
+	if len(name) < 2 {
+		Error(c, errors.New("上传文件类型错误"))
 		return
 	}
-
-	xlsxFile, err := xlsx.OpenFile(fileName)
-	if err != nil {
-		Error(c, err)
-		return
-	}
-	if len(xlsxFile.Sheet) == 0 {
-		Error(c, errors.New("文件为空"))
-		return
-	}
-
-	sheet := xlsxFile.Sheets[0]
-
-	for i, v := range sheet.Rows {
-		if i == 0 {
-			continue
-		}
-		if len(v.Cells) < 1 {
-			Error(c, errors.New("上传数据错误"))
+	fileType := name[len(name)-1]
+	if fileType != "xlsx" && fileType != "txt" {
+		if fileType == "xls" {
+			Error(c, errors.New("请使用Office或WPS将xls格式转为xlsx格式再次上传"))
 			return
 		}
-		account = append(account, v.Cells[0].Value)
+		Error(c, errors.New("上传文件类型错误"))
+		return
 	}
+
+	if fileType == "xlsx" {
+		fileName := fmt.Sprintf("%d.xlsx", time.Now().UnixNano())
+		if err := c.SaveUploadedFile(file, fileName); err != nil {
+			Error(c, err)
+			return
+		}
+
+		xlsxFile, err := xlsx.OpenFile(fileName)
+		if err != nil {
+			Error(c, err)
+			return
+		}
+		if len(xlsxFile.Sheet) == 0 {
+			Error(c, errors.New("文件为空"))
+			return
+		}
+
+		sheet := xlsxFile.Sheets[0]
+
+		for i, v := range sheet.Rows {
+			if i == 0 {
+				continue
+			}
+			if len(v.Cells) < 1 {
+				continue
+			}
+			account = append(account, v.Cells[0].Value)
+		}
+	} else {
+		f, err := file.Open()
+		defer f.Close()
+
+		decoder := mahonia.NewDecoder("gbk")
+
+		if err != nil {
+			Error(c, err)
+			return
+		}
+		buf := bufio.NewReader(decoder.NewReader(f))
+		for {
+			row, err := buf.ReadString('\n')
+			row = strings.TrimSpace(row)
+			line := strings.Split(row, "----")
+			if len(line) < 1 {
+				continue
+			}
+			account = append(account, line[0])
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				Error(c, err)
+				return
+			}
+		}
+	}
+
 	list, err := model.ResourceList(account)
 	if err != nil {
 		Error(c, err)

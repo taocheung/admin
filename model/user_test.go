@@ -6,6 +6,6 @@ import (
 )
 
 func TestAddUser(t *testing.T) {
-	password, _ := bcrypt.GenerateFromPassword([]byte("aliwangwang"), bcrypt.DefaultCost)
+	password, _ := bcrypt.GenerateFromPassword([]byte("123"), bcrypt.DefaultCost)
 	t.Log(string(password))
 }

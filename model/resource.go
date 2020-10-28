@@ -2,13 +2,14 @@ package model
 
 import (
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
 type Resource struct {
-	Id int `json:"id"`
-	Phone string `json:"phone"`
-	Account string `json:"account"`
+	Id        int       `json:"id"`
+	Phone     string    `json:"phone"`
+	Account   string    `json:"account"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -24,7 +25,7 @@ func ResourceImport(data []Resource) (int64, error) {
 	tx := db.Session(&gorm.Session{PrepareStmt: true}).Begin()
 
 	for _, v := range data {
-		result := tx.Model(&Resource{}).Where("account = ?", v.Account).FirstOrCreate(&v)
+		result := tx.Model(&Resource{}).Where("account = ?", strings.TrimSpace(v.Account)).FirstOrCreate(&v)
 		if result.Error != nil {
 			tx.Rollback()
 			return 0, result.Error
@@ -49,10 +50,10 @@ func ResourceExport(ids []int) ([]Resource, error) {
 }
 
 type ResourceListRsp struct {
-	Id int `json:"id"`
-	Phone string `json:"phone"`
-	Account string `json:"account"`
-	Status string `json:"status"`
+	Id        int    `json:"id"`
+	Phone     string `json:"phone"`
+	Account   string `json:"account"`
+	Status    string `json:"status"`
 	CreatedAt string `json:"created_at"`
 }
 
