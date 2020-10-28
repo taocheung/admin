@@ -9,10 +9,13 @@ import (
 
 func RemoveStatic() error {
 	c := cron.New()
-	spec := "*/1 * * * * *"
+	spec := "0 0 1 * * *"
 	err := c.AddFunc(spec, func() {
 		logrus.Info(1)
-		RemoveContents("/opt/static/*")
+		err := RemoveContents("/opt/static/")
+		if err != nil {
+
+		}
 	})
 	if err != nil {
 		return err
