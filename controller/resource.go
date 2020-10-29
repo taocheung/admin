@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/axgle/mahonia"
 	"github.com/gin-gonic/gin"
 	"github.com/tealeg/xlsx"
 	"io"
@@ -76,15 +75,20 @@ func ResourceImport(c *gin.Context) {
 		f, err := file.Open()
 		defer f.Close()
 
-		decoder := mahonia.NewDecoder("gbk")
-
 		if err != nil {
 			Error(c, err)
 			return
 		}
-		buf := bufio.NewReader(decoder.NewReader(f))
+		buf := bufio.NewReader(f)
 		for {
 			row, err := buf.ReadString('\n')
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				Error(c, err)
+				return
+			}
 			row = strings.TrimSpace(row)
 			line := strings.Split(row, "----")
 			if len(line) < 2 {
@@ -94,13 +98,6 @@ func ResourceImport(c *gin.Context) {
 				Phone:   line[1],
 				Account: line[0],
 			})
-			if err != nil {
-				if errors.Is(err, io.EOF) {
-					break
-				}
-				Error(c, err)
-				return
-			}
 		}
 	}
 
@@ -218,21 +215,13 @@ func ResourceList(c *gin.Context) {
 		f, err := file.Open()
 		defer f.Close()
 
-		decoder := mahonia.NewDecoder("gbk")
-
 		if err != nil {
 			Error(c, err)
 			return
 		}
-		buf := bufio.NewReader(decoder.NewReader(f))
+		buf := bufio.NewReader(f)
 		for {
 			row, err := buf.ReadString('\n')
-			row = strings.TrimSpace(row)
-			line := strings.Split(row, "----")
-			if len(line) < 1 {
-				continue
-			}
-			account = append(account, line[0])
 			if err != nil {
 				if errors.Is(err, io.EOF) {
 					break
@@ -240,6 +229,13 @@ func ResourceList(c *gin.Context) {
 				Error(c, err)
 				return
 			}
+			row = strings.TrimSpace(row)
+			fmt.Println(row)
+			line := strings.Split(row, "----")
+			if len(line) < 1 {
+				continue
+			}
+			account = append(account, line[0])
 		}
 	}
 
