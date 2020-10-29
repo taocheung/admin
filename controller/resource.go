@@ -85,7 +85,17 @@ func ResourceImport(c *gin.Context) {
 		buf := bufio.NewReader(decoder.NewReader(f))
 		for {
 			row, err := buf.ReadString('\n')
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				Error(c, err)
+				return
+			}
 			row = strings.TrimSpace(row)
+			if len(row) == 0 || row == "\r\n" {
+				continue
+			}
 			line := strings.Split(row, "----")
 			if len(line) < 2 {
 				continue
@@ -94,14 +104,11 @@ func ResourceImport(c *gin.Context) {
 				Phone:   line[1],
 				Account: line[0],
 			})
-			if err != nil {
-				if errors.Is(err, io.EOF) {
-					break
-				}
-				Error(c, err)
-				return
-			}
 		}
+	}
+
+	if len(data) == 0 {
+		return
 	}
 
 	num, err := model.ResourceImport(data)
@@ -227,12 +234,6 @@ func ResourceList(c *gin.Context) {
 		buf := bufio.NewReader(decoder.NewReader(f))
 		for {
 			row, err := buf.ReadString('\n')
-			row = strings.TrimSpace(row)
-			line := strings.Split(row, "----")
-			if len(line) < 1 {
-				continue
-			}
-			account = append(account, line[0])
 			if err != nil {
 				if errors.Is(err, io.EOF) {
 					break
@@ -240,6 +241,15 @@ func ResourceList(c *gin.Context) {
 				Error(c, err)
 				return
 			}
+			row = strings.TrimSpace(row)
+			if len(row) == 0 || row == "\r\n" {
+				continue
+			}
+			line := strings.Split(row, "----")
+			if len(line) < 1 {
+				continue
+			}
+			account = append(account, line[0])
 		}
 	}
 
