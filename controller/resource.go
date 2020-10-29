@@ -90,6 +90,9 @@ func ResourceImport(c *gin.Context) {
 				return
 			}
 			row = strings.TrimSpace(row)
+			if len(row) == 0 || row == "\r\n" {
+				continue
+			}
 			line := strings.Split(row, "----")
 			if len(line) < 2 {
 				continue
@@ -99,6 +102,10 @@ func ResourceImport(c *gin.Context) {
 				Account: line[0],
 			})
 		}
+	}
+
+	if len(data) == 0 {
+		return
 	}
 
 	num, err := model.ResourceImport(data)
@@ -230,7 +237,9 @@ func ResourceList(c *gin.Context) {
 				return
 			}
 			row = strings.TrimSpace(row)
-			fmt.Println(row)
+			if len(row) == 0 || row == "\r\n" {
+				continue
+			}
 			line := strings.Split(row, "----")
 			if len(line) < 1 {
 				continue

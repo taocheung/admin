@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -18,22 +19,17 @@ func (r *Resource) TableName() string {
 }
 
 func ResourceImport(data []Resource) (int64, error) {
-	var (
-		i int64
-	)
+	tx := db.Session(&gorm.Session{PrepareStmt: true})
 
-	tx := db.Session(&gorm.Session{PrepareStmt: true}).Begin()
-
+	sql := "INSERT IGNORE INTO resource (account, phone) VALUES "
 	for _, v := range data {
-		result := tx.Model(&Resource{}).Where("account = ?", strings.TrimSpace(v.Account)).FirstOrCreate(&v)
-		if result.Error != nil {
-			tx.Rollback()
-			return 0, result.Error
-		}
-		i++
+		sql += fmt.Sprintf("('%s', '%s'),", v.Account, v.Phone)
 	}
-	tx.Commit()
-	return i, nil
+	result := tx.Exec(strings.Trim(sql, ","))
+	if result.Error != nil {
+
+	}
+	return result.RowsAffected, nil
 }
 
 type ResourceExportReq struct {
