@@ -8,6 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary 用户登录
+// @Accept application/json
+// @Produce application/json
+// @Param Authorization header string true "Bearer"
+// @Param object body model.LoginReq false "查询参数"
+// @Success 0 {object} util.Response
+// @Router /user/login [post]
 func Login(c *gin.Context) {
 	var err error
 
@@ -33,62 +40,4 @@ func Login(c *gin.Context) {
 		return
 	}
 	Response(c, map[string]string{"token": token, "role": fmt.Sprintf("%d", user.Role)})
-}
-
-func AddUser(c *gin.Context)  {
-	var req model.AddUserReq
-	if err := c.Bind(&req); err != nil {
-		Error(c, err)
-		return
-	}
-	err := model.AddUser(&req)
-	if err != nil {
-		Error(c, err)
-		return
-	}
-	Response(c, nil)
-}
-
-
-func UpdateUser(c *gin.Context)  {
-	var req model.UpdateUserReq
-	if err := c.Bind(&req); err != nil {
-		Error(c, err)
-		return
-	}
-	err := model.UpdateUser(&req)
-	if err != nil {
-		Error(c, err)
-		return
-	}
-	Response(c, nil)
-}
-
-func DeleteUser(c *gin.Context)  {
-	var req model.DeleteUserReq
-	if err := c.Bind(&req); err != nil {
-		Error(c, err)
-		return
-	}
-	err := model.DeleteUser(&req)
-	if err != nil {
-		Error(c, err)
-		return
-	}
-	Response(c, nil)
-}
-
-
-func ListUser(c *gin.Context)  {
-	var req model.ListUserReq
-	if err := c.Bind(&req); err != nil {
-		Error(c, err)
-		return
-	}
-	list, err := model.ListUser(&req)
-	if err != nil {
-		Error(c, err)
-		return
-	}
-	Response(c, list)
 }

@@ -2,28 +2,16 @@ package router
 
 import (
 	"admin/controller"
+	_ "admin/docs"
 	"admin/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 func Init(router *gin.Engine) {
 	router.Use(middleware.Cors())
 	user := router.Group("/user")
 	user.POST("login", controller.Login)
-	user.Use(middleware.JWTUserAuth())
-	{
-		user.POST("add", controller.AddUser)
-		user.POST("update", controller.UpdateUser)
-		user.POST("delete", controller.DeleteUser)
-		user.POST("list", controller.ListUser)
-	}
-
-	resource := router.Group("/resource")
-	resource.POST("export", controller.ResourceExport)
-	resource.Use(middleware.JWTAuth())
-	{
-		resource.POST("import", controller.ResourceImport)
-		resource.POST("list", controller.ResourceList)
-	}
-	router.GET("download", controller.Template)
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

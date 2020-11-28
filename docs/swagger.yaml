@@ -1,0 +1,63 @@
+basePath: /v1
+definitions:
+  model.LoginReq:
+    properties:
+      code:
+        type: string
+      password:
+        description: 密码
+        type: string
+      username:
+        description: 用户名
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  util.Response:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+    type: object
+host: 127.0.0.1:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a admin server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Admin System API
+  version: "1.0"
+paths:
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 查询参数
+        in: body
+        name: object
+        schema:
+          $ref: '#/definitions/model.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "0":
+          description: ""
+          schema:
+            $ref: '#/definitions/util.Response'
+      summary: 用户登录
+swagger: "2.0"

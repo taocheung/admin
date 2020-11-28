@@ -1,136 +1,69 @@
 package middleware
 
 import (
+	"admin/util"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"time"
 )
 
-// JWTAuth 中间件，检查token
+var (
+	TokenExpired     = errors.New("token is expired")
+	TokenNotValidYet = errors.New("token not active yet")
+	TokenMalformed   = errors.New("that's not even a token")
+	TokenInvalid     = errors.New("couldn't handle this token")
+	SignKey          = "8779b4447ad5dbc71"
+)
+
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("token")
+		token := c.Request.Header.Get("authorization")
 		if token == "" {
-			c.JSON(http.StatusOK, gin.H{
-				"data": "",
-				"description": "请求未携带token，无权限访问",
-				"error": "请求未携带token，无权限访问",
-				"code": 1,
+			c.JSON(http.StatusOK, util.Response{
+				Code:    1,
+				Message: TokenNotValidYet.Error(),
+				Data:    nil,
 			})
 			c.Abort()
 			return
 		}
 
-		log.Print("get token: ", token)
-
 		j := NewJWT()
-		// parseToken 解析token包含的信息
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {
-				c.JSON(http.StatusOK, gin.H{
-					"data": "",
-					"description": "授权已过期",
-					"error": "授权已过期",
-					"code": 1,
+				c.JSON(http.StatusOK, util.Response{
+					Code:    1,
+					Message: TokenExpired.Error(),
+					Data:    nil,
 				})
 				c.Abort()
 				return
 			}
-			c.JSON(http.StatusOK, gin.H{
-				"data": "",
-				"description": err.Error(),
-				"error": err.Error(),
-				"code": 1,
+			c.JSON(http.StatusOK, util.Response{
+				Code:    1,
+				Message: TokenExpired.Error(),
+				Data:    nil,
 			})
 			c.Abort()
 			return
 		}
-		// 继续交由下一个路由处理,并将解析出的信息传递下去
 		c.Set("claims", claims)
 	}
 }
-
-
-// JWTAuth 中间件，检查token
-func JWTUserAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := c.Request.Header.Get("token")
-		if token == "" {
-			c.JSON(http.StatusOK, gin.H{
-				"data": "",
-				"description": "请求未携带token，无权限访问",
-				"error": "请求未携带token，无权限访问",
-				"code": 1,
-			})
-			c.Abort()
-			return
-		}
-
-		log.Print("get token: ", token)
-
-		j := NewJWT()
-		// parseToken 解析token包含的信息
-		claims, err := j.ParseToken(token)
-		if err != nil {
-			if err == TokenExpired {
-				c.JSON(http.StatusOK, gin.H{
-					"data": "",
-					"description": "授权已过期",
-					"error": "授权已过期",
-					"code": 1,
-				})
-				c.Abort()
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"data": "",
-				"description": err.Error(),
-				"error": err.Error(),
-				"code": 1,
-			})
-			c.Abort()
-			return
-		}
-		// 不是管理员
-		if claims.Role != 1 {
-			c.JSON(http.StatusOK, gin.H{
-				"data": "",
-				"description": "无权限访问",
-				"error": "无权限访问",
-				"code": 1,
-			})
-			c.Abort()
-			return
-		}
-		// 继续交由下一个路由处理,并将解析出的信息传递下去
-		c.Set("claims", claims)
-	}
-}
-
 
 // JWT 签名结构
 type JWT struct {
 	SigningKey []byte
 }
 
-// 一些常量
-var (
-	TokenExpired     error  = errors.New("Token is expired")
-	TokenNotValidYet error  = errors.New("Token not active yet")
-	TokenMalformed   error  = errors.New("That's not even a token")
-	TokenInvalid     error  = errors.New("Couldn't handle this token:")
-	SignKey          string = "newtrekWang"
-)
-
 // 载荷，可以加一些自己需要的信息
 type CustomClaims struct {
-	ID    int `json:"user_id"`
-	Username  string `json:"username"`
-	Role int `json:"role"`
+	ID       int    `json:"user_id"`
+	Username string `json:"username"`
+	Role     int    `json:"role"`
 	jwt.StandardClaims
 }
 
